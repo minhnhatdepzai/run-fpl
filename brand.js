@@ -178,6 +178,10 @@
     ["Portfolio of Lê Minh Nhật", "Portfolio của Lê Minh Nhật"],
     ["Open Lê Minh Nhật's portfolio", "Mở portfolio của Lê Minh Nhật"],
     ["Call 0707 193 002", "Gọi 0707 193 002"],
+    ["CREDITS", "THÔNG TIN"], ["With thanks.", "Lời cảm ơn."],
+    ["SOUND EFFECTS", "HIỆU ỨNG ÂM THANH"],
+    ["Footstep sound effects from gfxsounds.com", "Hiệu ứng tiếng bước chân từ gfxsounds.com"],
+    ["OPEN-SOURCE SOFTWARE", "PHẦN MỀM MÃ NGUỒN MỞ"], ["Licence notices", "Thông báo giấy phép"],
     ["Drag to move. Tap ‹JUMP› to leap — hold it to go higher.", "Kéo để di chuyển. Chạm ‹NHẢY› để nhảy — giữ để nhảy cao hơn."],
     ["Drag to move. Tap", "Kéo để di chuyển. Chạm"], ["to leap — hold it to go higher.", "để nhảy — giữ để nhảy cao hơn."],
     ["Drag the purple clay up beside the high ledge with your finger.", "Dùng ngón tay kéo đất sét tím lên cạnh bờ cao."],
@@ -495,6 +499,8 @@
     if (chapterHeading?.tagName === "H2" && chapterHeading.textContent !== chapterText) {
       chapterHeading.textContent = chapterText;
     }
+    const chapterEyebrow = document.querySelector("#dialog-content .chapters-list")?.parentElement?.querySelector(":scope > .eyebrow");
+    if (chapterEyebrow) chapterEyebrow.textContent = language === "vi" ? "TÁM PHONG CẢNH" : "EIGHT WORLDS";
 
     ensureLanguageControl(language);
     ensureWorldPicker(language);

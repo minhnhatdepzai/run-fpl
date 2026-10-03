@@ -71,6 +71,14 @@ html[lang="vi"] .title-character[data-character="clay"] strong::after {
   color: #277aa8;
 }
 
+/* Run FPL exposes the eight finished worlds only. The inherited workshop and
+   procedural kiln contain authoring copy outside the two-language game UI. */
+[data-action="editor"],
+.playground-choice,
+.kiln-choice {
+  display: none !important;
+}
+
 .run-fpl-world-picker {
   position: absolute;
   z-index: 2;
