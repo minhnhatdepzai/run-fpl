@@ -1,0 +1,17 @@
+{
+  "name": "Run FPL — Anime Worlds",
+  "short_name": "Run FPL",
+  "description": "Run, jump and explore 3D anime worlds by Lê Minh Nhật.",
+  "start_url": "./",
+  "scope": "./",
+  "id": "/run-fpl/",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#89b7db",
+  "theme_color": "#e64e1e",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {"src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"}
+  ]
+}

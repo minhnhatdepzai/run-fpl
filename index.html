@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en" translate="no">
+<head>
+  <meta charset="utf-8">
+  <script>
+    // The boot beacon. PostHog only starts once app.js and its whole module
+    // graph have arrived, so a player who leaves while the title is still
+    // loading used to leave nothing but a bare $pageleave, and one who left
+    // before the SDK arrived left nothing at all. This runs first, sends
+    // page_opened, and sends load_left if the page goes away before the title
+    // is ready. app.js writes the stage it has reached into window.clayBoot.
+    // It is gated exactly like analytics.js (tests/analytics.mjs holds the two
+    // in step): the hosted game only, not a browser marked internal, not a
+    // player who turned analytics off.
+    (function(){
+      var B=window.clayBoot={on:false,stage:'page',progress:0,ready:false,readyAt:null,play:null,sdk:false,hides:0};
+      var KEY='phc_xUa2rawX6XuojQu6UztXMN4xiAWzgyKga7tHgy3unPu9',INGEST='https://eu.i.posthog.com/i/v0/e/';
+      var HOSTS=['playclaybound.com','claybound-56949.web.app','claybound-56949.firebaseapp.com'];
+      function rid(){try{if(crypto.randomUUID)return crypto.randomUUID();}catch(e){}return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+      try{
+        if(HOSTS.indexOf(location.hostname)<0)return;
+        var ls=window.localStorage,flag=new URLSearchParams(location.search).get('internal');
+        if(flag==='1'||(flag!=='0'&&ls.getItem('claybound.internal')==='1'))return;
+        var save=JSON.parse(ls.getItem('claybound-v1')||'null');
+        if(save&&save.analytics===false)return;
+        // The SDK's own id when it has one, so these events join the player's
+        // later ones; otherwise a fresh one that analytics.js bootstraps into it.
+        var ph=JSON.parse(ls.getItem('ph_'+KEY+'_posthog')||'null');
+        B.id=ph&&ph.distinct_id||rid();B.fresh=!(ph&&ph.distinct_id);B.returning=!!save;
+      }catch(e){return;}
+      B.on=true;B.boot=rid();
+      var ua=navigator.userAgent||'',touchMac=/Macintosh/.test(ua)&&navigator.maxTouchPoints>1;
+      var device=/iPad|Tablet/.test(ua)||touchMac?'Tablet':/Mobi|Android|iPhone|iPod/.test(ua)?'Mobile':'Desktop';
+      var app=/FBAN|FBAV|FB_IAB/.test(ua)?'facebook':/Instagram/.test(ua)?'instagram':/Twitter/.test(ua)?'x'
+        :/Reddit/.test(ua)?'reddit':/musical_ly|Bytedance|TikTok/.test(ua)?'tiktok':/Snapchat/.test(ua)?'snapchat':/Line\//.test(ua)?'line'
+        :/; wv\)/.test(ua)?'android-webview':'';
+      var conn=navigator.connection||{},ref=document.referrer,refHost='';
+      try{refHost=ref?new URL(ref).hostname:'$direct';}catch(e){}
+      function send(event,props){
+        try{
+          props.boot_id=B.boot;props.device=device;props.in_app=app;props.returning=B.returning;
+          props.$lib='claybound-boot';props.$process_person_profile=false;props.$raw_user_agent=ua;
+          props.$current_url=location.href;props.$host=location.hostname;props.$pathname=location.pathname;
+          props.$referrer=ref||'$direct';props.$referring_domain=refHost;
+          var body=JSON.stringify({api_key:KEY,event:event,distinct_id:B.id,properties:props,timestamp:new Date().toISOString()});
+          // text/plain keeps the beacon a simple request: no CORS preflight.
+          if(!(navigator.sendBeacon&&navigator.sendBeacon(INGEST,new Blob([body],{type:'text/plain'}))))
+            fetch(INGEST,{method:'POST',body:body,keepalive:true,mode:'no-cors'});
+        }catch(e){}
+      }
+      var q=new URLSearchParams(location.search),opened={since_nav_ms:Math.round(performance.now()),
+        viewport_w:innerWidth,viewport_h:innerHeight,coarse:!!(window.matchMedia&&matchMedia('(pointer: coarse)').matches),
+        connection:conn.effectiveType||null,save_data:!!conn.saveData,device_memory:navigator.deviceMemory||null};
+      ['utm_source','utm_medium','utm_campaign','utm_content'].forEach(function(k){var v=q.get(k);if(v)opened[k]=v.slice(0,80);});
+      send('page_opened',opened);
+      // Once per spell away: a player who switches tabs and comes back is
+      // re-armed, so the last load_left per boot_id is how long they gave it.
+      var sent=false;
+      function left(kind){
+        if(B.ready||sent)return;sent=true;
+        var fcp=null,bytes=0,files=0;
+        try{performance.getEntriesByType('paint').forEach(function(p){if(p.name==='first-contentful-paint')fcp=Math.round(p.startTime);});
+          performance.getEntriesByType('resource').forEach(function(r){files++;bytes+=r.transferSize||0;});}catch(e){}
+        send('load_left',{kind:kind,waited_ms:Math.round(performance.now()),stage:B.stage,progress:Math.round(B.progress*100),
+          fcp_ms:fcp,kb_loaded:Math.round(bytes/1024),files_loaded:files,hides:B.hides,sdk:B.sdk,
+          pressed_play:B.play!==null,waited_after_play_ms:B.play===null?null:Math.round(performance.now()-B.play)});
+      }
+      addEventListener('pagehide',function(){left('pagehide');});
+      document.addEventListener('visibilitychange',function(){
+        if(document.visibilityState==='hidden'){B.hides++;left('hidden');}else sent=false;
+      });
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+  <meta name="theme-color" content="#e64e1e">
+  <meta name="google" content="notranslate">
+  <meta name="description" content="Run FPL — game platform 3D với nhiều thế giới đất sét và nhân vật anime do Lê Minh Nhật phát triển.">
+  <meta name="author" content="Lê Minh Nhật">
+  <title>Run FPL — Anime Worlds</title>
+
+  <!-- Link previews. Without these the game arrives in a chat as a bare URL,
+       which is most people's first and only look at it. The image URLs are
+       absolute: Reddit, Slack and Discord drop a relative og:image, and the
+       card then arrives blank. -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://playclaybound.com/">
+  <meta property="og:site_name" content="Run FPL">
+  <meta property="og:title" content="Run FPL — Anime Worlds">
+  <meta property="og:description" content="Chạy, nhảy và khám phá nhiều thế giới 3D cùng các nhân vật anime.">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The Claybound explorer running over a hill of purple clay beneath an orange canyon arch.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Run FPL — Anime Worlds">
+  <meta name="twitter:description" content="Game platform 3D của Lê Minh Nhật.">
+  <link rel="canonical" href="https://playclaybound.com/">
+  <link rel="icon" href="icon-32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Run FPL">
+  <link rel="preload" href="bundle/logo-C8LjbK78.webp" as="image">
+  <link rel="preload" href="bundle/sans-bold-CGNomxSd.woff" as="font" type="font/woff" crossorigin>
+  <link rel="preload" href="bundle/sans-medium-CyKRVt1z.woff" as="font" type="font/woff" crossorigin>
+  <script type="module" src="brand.js"></script>
+  <script type="module" crossorigin src="bundle/index-CycRSWbn.js"></script>
+  <link rel="modulepreload" crossorigin href="bundle/socials-BEwiKBee.js">
+  <link rel="stylesheet" crossorigin href="bundle/index-B-s4k1P9.css">
+  <link rel="stylesheet" href="brand.css">
+</head>
+<body class="is-menu">
+  <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute;pointer-events:none">
+    <defs>
+      <!-- palette.js writes these same values; they are spelled out so the
+           logo and Play are already in the game's orange before it runs. -->
+      <filter id="clay-logo-orange" color-interpolation-filters="sRGB"><feColorMatrix id="clay-logo-pigment" type="matrix" values="0.48669335085313303 1.63726756599323 0.16528344276385795 0 0 0.16505559675011358 0.555257586056826 0.05605368807788428 0 0 0.06348433430037402 0.21356536167275394 0.02155959048206493 0 0 0 0 0 1 0"/></filter>
+      <filter id="clay-button-orange" color-interpolation-filters="sRGB"><feColorMatrix id="clay-button-pigment" type="matrix" values="0.4631815947732716 1.5581725144959726 0.15729873538396147 0 0 0.15708189642402115 0.5284335480830663 0.05334578044127152 0 0 0.06041745824721586 0.20324819444218614 0.020518064371820247 0 0 0 0 0 1 0"/></filter>
+    </defs>
+  </svg>
+  <main id="game-shell" aria-label="Run FPL platform game">
+    <canvas id="world" aria-label="Side-view clay platformer. Use arrow keys to move and Space to jump."></canvas>
+    <div class="vignette" aria-hidden="true"></div>
+    <div id="slow-time" class="slow-time" aria-hidden="true"></div>
+
+    <div id="loading" class="loading hidden" aria-busy="true">
+      <header class="loading-brand">
+        <h1 class="loading-title"><img class="title-logo" src="bundle/logo-C8LjbK78.webp" alt="Run FPL" width="1600" height="456" fetchpriority="high"></h1>
+        <p class="loading-tagline">Loading anime worlds…</p>
+      </header>
+      <div class="loading-feedback">
+        <div id="loading-progress" class="loading-line" aria-hidden="true"><span id="loading-fill"></span></div>
+        <span id="loading-status" role="status" aria-live="polite">Warming up the clay…</span>
+      </div>
+    </div>
+
+    <header id="hud" class="hud hidden">
+      <div class="health-block"><div id="health" class="health" aria-label="3 health remaining" role="img"><i></i><i></i><i></i></div><div id="kiln-hud" class="kiln-hud" hidden></div></div>
+      <div class="hud-right"><div class="collect-count"><img class="hud-bead" src="bundle/bead-BuU2NiVW.webp" alt="Clay beads"><span id="coin-count">0</span></div><div id="flower-slots" class="flower-slots" role="img" aria-label="0 of 3 secret flowers found"><i class="flower-slot"></i><i class="flower-slot"></i><i class="flower-slot"></i></div><button id="hud-fullscreen" class="icon-button" data-fullscreen aria-label="Enter fullscreen" title="Fullscreen (F)"><i data-lucide="expand"></i></button><button id="pause" class="icon-button" aria-label="Pause game"><i data-lucide="pause"></i></button></div>
+    </header>
+
+    <div id="mother-mist" class="mother-mist hidden" aria-hidden="true"></div>
+    <div id="cinema-bars" class="cinema-bars" aria-hidden="true"><i></i><i></i></div>
+    <button id="scene-skip" class="scene-skip" type="button" tabindex="-1" aria-hidden="true">Skip<kbd>Space</kbd><i data-lucide="chevrons-right"></i></button>
+    <section id="menu" class="main-menu title-screen" aria-label="Run FPL title screen">
+      <!-- title-sketch: generated by scripts/prepare-title-sketch.cjs -->
+      <div class="title-sketch" aria-hidden="true">
+        <svg class="f" viewBox="-367 -477 741 825" style="--x:0.71;--y:1.17;--l:-367;--t:-477;--w:741;--h:825"><path fill="#c1d0d9" d="M-192-476l-33 1l-21 3l-9 5l-6 10l-6 47l-24 5l-7 6l0 17l-4 6l-4 43l-1 1l-18 2l-3 3l-6 2l-9 12l-2 11l0 21l-3 21l-1 44l-3 28l-13 535l312 0l0-523l-3-44l-4-9l-5-5l-5-1l0-2l4-5l27-14l11-1l16-4l12-6l19-3l12 3l21-1l36 4l4 4l17 8l9 8l4 17l9 13l2 12l-2 13l-8 9l0 7l-1 1l-20 2l-5 2l-8 4l-9 9l0 502l293 0l-1-507l-5-9l-6-3l-16-2l-7-41l0-8l-5-8l-2-3l-17-4l-15 0l-11-3l-4-17l-1-25l-4-18l0-10l-3-7l-4-5l-9-2l-5-3l-37-1l-7-10l-11-8l-22-5l-54-5l-4-8l-4-4l-12-4l-15-2l-125 3l-23 6l-18 8l-14 0l-12-5l1-6l-1-10l-3-7l-1-28l-8-39l-4-7l-7-5l-17-2l-19 0l-11 2l-9-7z"/></svg>
+        <svg class="f" viewBox="-166 -567 341 1050" style="--x:0.64;--y:1.02;--l:-166;--t:-567;--w:341;--h:1050"><path fill="#c3c7d1" d="M30-566l-6 8l1 4l3 3l0 40l-17 1l-11 10l-18 2l-4 4l-6 2l-9 11l1 13l-7 68l2 23l-10 2l-9 8l-6 31l-4 41l-3 1l-3-2l-14 1l-8 10l0 3l-9 2l-14 15l1 8l7 7l11 5l21 5l2 46l-3 33l-1 3l-18 4l-17 12l-1 6l-6 9l-9 63l-28 24l-2 522l338 0l-1-522l-4-19l-7-6l-2-35l-6-31l-2-4l-9-9l-16-4l1-63l-5-10l-9-6l-8-2l-1-64l-3-12l-6-7l-2-70l-4-5l-2-17l-3-7l-16-2l1-9l-3-39l1-12l2-5l0-14l-6-6l-3-7l-10-4l-15-2l1-14l20 2l9 4l18 0l-1-5l-7-7l11-8l0-2l-6-3l-14-1l-11-5l-18-1l2-5l-2-8z"/></svg>
+        <svg class="f" viewBox="-114 -480 233 873" style="--x:0.47;--y:1.12;--l:-114;--t:-480;--w:233;--h:873"><path fill="#bec4ce" d="M25-478l-7 3l0 7l2 3l1 33l-24 3l-7 5l0 3l-12 2l-12 7l-4 6l-2 12l0 28l-2 7l0 41l-13 5l-5 5l-3 12l1 18l-3 4l-2 29l-13 2l-6 9l-10 2l-9 7l0 10l4 6l6 5l13 3l5 33l6 9l0 11l-4 14l-10 1l-18 9l-9 9l0 507l230-1l-3-508l-10-10l2-12l-1-39l-18-14l-1-60l-1-4l-3-3l0-54l-2-15l-3-2l-1-16l-5-5l-12 0l-4 1l-3 6l-4-2l-2-20l1-52l-8-8l-13-5l1-12l16 0l8 3l16 0l0-5l-6-6l9-9l-3-1l-13 0l-10-4l-16 0l2-5l-1-4z"/></svg>
+        <svg class="f" viewBox="-82 -346 179 793" style="--x:0.41;--y:1.06;--l:-82;--t:-346;--w:179;--h:793"><path fill="#bdc2cd" d="M18-345l-4 5l3 5l0 23l-11 1l-7 6l-12 2l-7 4l-4 6l-1 29l-3 21l1 14l-7 1l-6 8l-4 42l-12-1l-5 8l-7 2l-4 4l-3 6l4 7l8 4l9 1l1 2l5 29l-3 19l-12 3l-12 8l-5 20l0 512l176 0l-2-518l-4-11l-6-6l-9-2l0-40l-3-5l-8-4l0-37l-4-7l-1-9l0-37l-3-6l-2-13l-2-3l-12 0l-2-27l1-10l2-4l-1-8l-5-7l-13-3l1-9l12 1l4 2l12 0l0-2l-5-5l7-6l-11-2l-6-3l-13-1l1-2l-1-4l-2-3z"/></svg>
+        <svg class="f" viewBox="-94 -380 197 818" style="--x:0.58;--y:1.07;--l:-94;--t:-380;--w:197;--h:818"><path fill="#bdbdc7" d="M18-379l-4 3l0 6l2 2l0 26l-19 2l-4 2l-2 4l-10 2l-8 5l-4 6l-3 38l0 32l-9 2l-5 4l-3 13l1 12l-2 2l-2 24l-10 2l-5 7l-7 1l-7 6l0 9l4 6l13 5l4 26l6 10l-5 16l-13 3l-7 4l-8 8l-4 15l1 513l193 0l-6-507l-4-20l-8-9l2-10l-1-32l-6-6l-8-3l-1-48l-1-5l-3-3l2-19l-1-19l-1-13l-4-6l0-11l-5-5l-11 1l-4 5l-3 0l-2-23l2-32l-1-4l-3-4l-13-5l1-11l14 1l5 2l13-1l0-2l-6-5l8-7l-3-2l-10 0l-7-3l-13 0l1-5l-2-4z"/></svg>
+        <svg class="s" viewBox="-50 -50 100 100" style="--l:-50;--t:-50;--w:100;--h:100"><path fill="#f8e7be" d="M-7-48l-17 6l-14 11l-9 17l-2 18l7 21l13 14l10 6l20 4l18-4l16-12l10-16l3-12l0-11l-6-18l-12-14l-18-9z"/></svg>
+        <svg class="f" viewBox="-107 -372 225 855" style="--x:0.51;--y:1.02;--l:-107;--t:-372;--w:225;--h:855"><path fill="#ba9aa3" d="M17-371l-4 3l0 6l2 2l0 26l-19 1l-5 3l-2 4l-10 2l-10 9l-3 36l0 33l-11 4l-5 8l0 19l-2 2l-1 6l-1 18l-9 2l-3 6l-8 1l-8 7l1 9l4 5l11 5l4 25l5 6l0 7l-4 13l-11 1l-9 6l-9 11l-3 24l0 26l-1 4l-11 513l222 0l-2-520l-7-10l-8-3l0-12l-9-7l-3-16l-7-10l2-9l0-31l-8-9l-7-2l0-37l-2-15l-3-3l2-17l-1-24l-1-11l-3-2l-1-13l-3-4l-11 0l-5 4l0 2l-4-1l-2-23l2-31l-4-7l-12-5l1-10l30 2l1-3l-5-5l7-6l-4-3l-28-2l1-5l-2-4z"/></svg>
+        <svg class="c" viewBox="-129 -74 260 147" style="--x:0.548;--y:0.525;--l:-129;--t:-74;--w:260;--h:147"><path fill="#c6baab" d="M-10-72l-25 8l-12 10l-12 21l-2 22l-3 0l-9-5l-13 0l-12 5l-4 3l-8 18l-10 7l-5 7l-3 8l0 14l6 12l7 6l13 5l31 0l6 2l41-2l14 3l39-3l13 0l9 2l30 0l24-6l10-5l10-15l4-16l-1-18l-10-18l-7-7l-17-7l-11-1l-17 4l-3-11l-5-9l-22-21l-23-10z"/></svg>
+        <svg class="c" viewBox="-160 -90 209 179" style="--x:0.97;--y:0.474;--l:-160;--t:-90;--w:209;--h:179"><path fill="#cdc1b1" d="M-18-89l-28 10l-13 12l-15 25l-3 15l1 9l-2 4l-15-7l-12 0l-9 2l-13 9l-7 12l-3 10l-2 3l-4 1l-8 7l-8 15l0 19l3 8l9 10l16 8l39 0l16 4l9 0l11-3l26 0l15 3l10 0l9-2l44-1l0-151l-14-11l-26-9z"/></svg>
+        <svg class="r" viewBox="-77 -1 145 360" style="--l:-77;--t:-1;--w:145;--h:360"><path fill="#b3d2db" d="M-5 0l-9 10l-5 9l-2 8l1 13l9 20l21 30l11 20l3 10l1 12l-5 17l-8 11l-8 7l-29 22l-17 18l-17 23l-9 18l-7 29l1 28l8 29l12 24l91 0l-20-24l-14-26l-6-23l0-22l7-27l10-21l31-47l16-18l5-11l1-16l-4-14l-6-11l-35-44l-13-20l-5-16l0-9l3-8z"/></svg>
+        <svg class="f" viewBox="-420 -381 1193 1035" style="--x:0.83;--y:0.83;--l:-420;--t:-381;--w:1193;--h:1035"><path fill="#e08b78" fill-rule="evenodd" d="M-224-380l-23 2l-10 3l-6 5l-10 42l-42 4l-11 7l-3 6l1 8l-3 3l-1 5l-2 26l-17 5l-10 12l-3 32l0 30l-4 17l1 18l-9 17l-7 3l-6 6l-6 13l-2 11l0 15l-3 11l1 3l-10 5l-4 4l-3 8l-3 45l0 667l1191 0l0-899l-538-3l-2-6l-7-7l-6-2l-8 0l-5-3l-10-2l-11 0l-21-4l-25-2l-4-5l-8-5l-18-4l-28-2l-22 0l-8 2l-11-2l-64-1l-20 3l-20 6l-30-1l-14-7l-1-9l-4-10l1-16l-4-19l-5-14l-5-6l-17-4l-27 1l-5-6l-13-5zM18-208l-22 2l-7 3l-17 3l-13 0l-24 9l-14 14l4 4l13 6l7 9l5 14l0 14l5 5l6 13l12 1l4 2l20 1l29 8l7 4l10 2l9 6l2 3l2 9l5 8l14 0l29 5l3-14l2-42l10-9l24-6l3-15l-4-15l-11-11l-3-12l-5-4l-15-3l-14-7l-41-5l-19 1z"/></svg>
+        <svg class="c" viewBox="-111 -73 228 146" style="--x:0.491;--y:0.272;--l:-111;--t:-73;--w:228;--h:146"><path fill="#bfb3a6" d="M-9-72l-13 4l-15 12l-11 20l-3 14l1 8l-2 3l-9-5l-13 0l-8 4l-5 5l-7 18l-9 7l-5 9l-2 17l5 13l10 8l8 3l28 0l5 2l13 0l6-2l17 0l13 3l32-3l12 0l15 3l19-1l27-9l10-13l5-20l-1-15l-3-9l-8-13l-8-8l-13-5l-11 0l-11 3l-3-10l-4-8l-20-23l-8-5l-14-5z"/></svg>
+        <svg class="c" viewBox="-239 -136 224 271" style="--x:1.01;--y:0.162;--l:-239;--t:-136;--w:224;--h:271"><path fill="#c1b7aa" d="M-23-135l-27 8l-14 7l-14 11l-6 7l-15 22l-8 17l-4 20l1 16l-4 6l-6-2l-6-5l-9-3l-23 0l-11 3l-11 6l-10 10l-9 17l-5 15l-2 3l-3 0l-8 5l-11 12l-9 20l-1 20l4 15l7 12l9 8l13 8l18 5l55 0l26 5l9 0l17-4l8 1l28-2l28 5l0-267z"/></svg>
+        <svg class="c" viewBox="-120 -87 240 172" style="--x:0.102;--y:0.218;--l:-120;--t:-87;--w:240;--h:172"><path fill="#bbafa2" d="M-13-85l-18 8l-12 13l-11 25l-1 23l-3 4l-9-6l-10-1l-9 3l-8 8l-7 21l-9 7l-7 16l-1 15l2 9l4 8l7 8l10 5l29 0l9 3l9 0l13-3l13 0l11 3l30-1l9-2l9 0l12 3l22 0l21-6l12-6l8-11l4-9l1-12l2-5l-1-22l-5-14l-6-10l-9-8l-12-6l-11-1l-14 4l-3-14l-5-11l-24-26l-21-10z"/></svg>
+        <svg class="c" viewBox="-14 -78 140 75" style="--x:0.008;--y:1.005;--l:-14;--t:-78;--w:140;--h:75"><path fill="#e5d9c5" d="M-12-76l0 72l136-1l-9-10l-13-6l-20-2l-14 3l-4-11l-8-13l-21-19l-11-6l-15-5z"/></svg>
+        <svg class="o" viewBox="-641 -300 1547 926" style="--l:-641;--t:-300;--w:1547;--h:926"><path fill="#f07438" d="M-190-299l-5 9l0 15l2 3l0 50l-2 27l-3 121l-3-4l0-10l-6-3l-3-8l-4-3l-9 0l-5 6l-5 6l-3 11l-2-1l-7-13l-10 0l-1-4l-1-16l9 1l20-4l17-16l4-17l4-8l0-4l-8-18l-13-7l-7 0l-12 6l-9 15l2 17l-10 3l1-67l-12-15l-13-6l-7-1l-15 4l-6 5l-6 11l-6 5l-1 4l2 5l2 50l3 14l-2 7l-4-1l-6-5l2-6l-4-11l-2-4l-9-7l-7-2l-10 1l-7 8l-6 11l0 19l9 15l9 9l13 7l15 0l-1 12l-6-1l-5 3l-2-5l-9-3l-5 6l-2 5l-10-14l-9 0l-4 5l-3 13l-8 0l-4 6l-2 6l5 24l-8-3l-23 0l-23 11l-1-5l-8-7l-8 1l-4 3l-7-3l-5 3l-4-4l-8-3l-7 1l-5 5l-2 10l5 16l-5-10l-5-4l-12 1l-3 4l-3 10l1 11l5 4l-14 6l-32 8l-19 16l-8 29l-1 12l-6 1l-18 11l-11 23l-7 10l-2 505l1545 0l-1-541l-545-4l-19 7l-2-21l-15-39l3-19l-14-13l-29-13l-48-3l-3-3l-22-7l-35-4l-43 2l6-3l3-7l4-4l-1-2l-29-5l-7 1l0-7l-15-5l-23 1l-13 5l-2-7l2-3l0-5l-2-4l-16-16l-5-12l0-10l-4-4l-3 0l3-4l7-2l5-5l-1-10l3-3l0-4l3-5l5 1l3-2l-1-6l-3-4l1-3l-3-3l5-4l0-3l-26-18l2-4l-4-3l-12-1l-11 4l8-9l3 0l3-2l-3-4l-7-2l-7 1l-7 5l-4 8l0 7l-6-2l-13 2l-20-17l1-7l13-21l-1-7l-11-8l-42 1l-25-5l-27-8l-3 0l0 2l-10 2l-2 18l10 39l-1 12l6 3l28 8l22 1l49 7l-11 12l-1 7l1 1l11 0l0 5l-6 4l-1 8l4 6l3 2l7 0l3 5l-7 6l0 9l-3 3l-4 12l-11 16l2 9l-2 14l3 6l5 0l10-12l4-2l3 3l-2 13l4 3l-2 1l-5 0l-10 5l-6 7l-50-1l-25-3l0-15l2-6l-8-12l-4-4l-23-11l-10 1l0-80l5-41l-1-41l8-8l-11-8l4-3l-2-4l7-9l0-11l-10-10z"/><path fill="#446522" fill-rule="evenodd" d="M-291-234l-19 6l-15 23l3 6l-1 22l2 27l3 13l-1 6l-5 1l-4-3l-4-19l-11-11l-15-2l-9 9l-5 8l-1 21l8 14l14 13l8 4l14 0l2 6l-1 6l-3 1l-7 1l-5-5l-7-1l-5 5l-2 3l-2 0l-8-12l-6-1l-6 5l-3 12l-8 2l-4 5l-3 10l5 18l15 22l20 0l3-2l2-9l12-25l14-16l18-9l31 1l16 3l10 5l7 6l14 14l3 8l5-3l18-2l3-2l4-22l-4-7l0-7l-6-5l-4-8l-6-3l-6 1l-8 9l-4 12l-3 0l-4-8l-5-5l-7 0l-2-2l-1-10l0-6l1-2l6 1l10-2l2-2l10-1l15-13l9-26l0-6l-3-9l-7-10l-10-5l-6 0l-10 4l-5 5l-7 13l2 14l-1 2l-9 3l-1-2l3-63l-15-18l-11-5zM-169-84l-2 3l0 14l3 3l-3 4l-1 14l3 12l11 7l12-1l9-5l3 0l6-6l-1-13l2-5l-7-11l-11-9l-11-5l-5-2zM86-66l-13 1l-12 4l-3 4l0 9l-4 3l-6-1l-6-11l-9-4l-2 3l0 10l-8 6l3 13l2 2l54 0l7-1l6-6l18 1l17-1l5-2l9-11l-2-3l-12-1l-10-3l-10 0l-2-2l-2-6l-14-4zM-495-45l-8 7l-1 17l-7-6l-9 0l-4 4l-2 5l-2 7l1 9l15 10l13-2l12-8l10 2l20-9l3-6l-1-7l8-10l-2-5l-6-5l-8 1l-3 2l-14 0l-6-4zM-208-35l-3 4l-6-3l-3 5l2 9l-3 4l0 5l3 3l15-2l3-2l2-11l-5-5l-1-5zM-403 52l-2 2l-6 0l-2 3l-9 16l0 10l-3 2l-3 0l-13-7l-6 0l-2 3l0 9l5 8l-2 1l-8-1l-6 5l7 9l17 2l7-4l14-3l13 5l9 7l13 0l6 5l78 0l1-2l6-6l1-4l-6-16l-11-12l-5-3l-17-1l-19 10l-6-2l-14 1l-1-1l-1-18l-3-5l-5-3l-13 5l-3-9l-4-4zM360 79l-19 7l-9 15l-3 8l7 6l1 9l67 0l1-40z"/><path fill="#9f200f" d="M-189-299l-6 9l0 15l2 3l0 51l-3 63l-1 91l-1 6l-2 2l1 3l-2 7l-10 3l-13 1l-3 3l-5-11l-20-18l-5 0l1-1l-5-4l-16-3l-34 0l-2 2l1 1l12-1l3 2l5-1l3 2l5-1l20 3l1 6l-2 1l-3-2l0 2l3 2l4 0l4 4l-1 7l3 4l0 3l-7 3l-7-5l0 7l-5 4l-7 4l-8 2l-6 7l-3 0l0-4l-10 1l-4 3l1 4l-4 4l7-4l12-1l6 7l-3 7l-4-1l-6 7l-10-2l-4 1l-2-2l-5 5l-8 0l0 2l27 2l6-2l19-1l7-2l0-4l55-3l0-2l-5-2l-4 2l-1-1l0-5l3-5l2 2l5-4l-2-9l3-5l6-6l5 0l5 3l16-4l14 10l7 9l20-3l7-3l1-4l-2-1l0 3l-4 2l-17 2l-10-6l-3-10l2-20l-3-53l1-48l5-41l-1-41l7-7l0-2l-9-8l2-2l0-6l6-7l0-11l-10-9l-9 2z"/><path fill="#a82411" d="M-144-268l-2 2l-9 3l-2 12l1 10l9 34l-1 12l1 1l33 10l22 1l35 6l16 1l-5-5l16-14l-7-8l-12-9l0-8l13-21l0-5l-5-6l-7-4l-42 1z"/><path fill="#8c5c27" fill-rule="evenodd" d="M4-217l-10 4l-4 6l-1 11l-6-2l-12 2l-16 13l-1 3l6 4l-5 2l-10 12l0 5l1 1l11 0l0 5l-6 3l-1 4l1 8l6 5l7 0l3 5l-7 6l0 9l-3 3l-4 12l-11 16l2 9l-2 11l1 7l2 2l5 0l10-12l4-2l3 3l-2 13l8 5l-3 15l-7 3l-1 7l2 2l-8 11l2 9l4 2l-6 1l3 4l22 0l17-2l8 3l25 1l9-2l7-4l-17-1l15-4l6-3l-3-10l-7-6l-6-1l-1-5l-3-3l-5 0l-3-16l6-3l3-4l-5-22l5 10l9 3l7 13l7 1l3-3l0-11l-3-8l2-3l0-5l-2-4l-16-16l-5-12l0-10l-4-4l-3 0l3-4l7-2l5-5l-1-10l3-3l0-4l3-5l5 1l3-2l-1-6l-3-4l1-3l-3-3l5-4l0-3l-26-18l2-4l-4-3l-12-1l-11 4l8-9l3 0l3-2l-3-4zM-6-41l-1 14l6 3l5-2l-1-12l-2-3zM-4 3l-12 3l23 1z"/></svg>
+      </div>
+      <!-- /title-sketch -->
+      <p id="title-scene-status" class="title-scene-status" role="status">Shaping the canyon…</p>
+      <header class="title-brand">
+        <h1><img class="title-logo" src="bundle/logo-C8LjbK78.webp" alt="Run FPL" width="1600" height="456" fetchpriority="high"></h1>
+        <p id="title-tagline">ANIME WORLDS</p>
+      </header>
+      <nav class="title-actions" aria-label="Main menu">
+        <!-- The glyphs are drawn here rather than left to lucide, which only
+             runs with app.js; Chapters starts hidden and app.js shows it once
+             a second chapter is open (syncChaptersButton). -->
+        <button id="play" class="title-button title-play"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="play" aria-hidden="true" class="lucide lucide-play"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg><span id="play-label">Play</span></button>
+        <button id="chapters" class="title-button hidden"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="map" aria-hidden="true" class="lucide lucide-map"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"></path><path d="M15 5.764v15"></path><path d="M9 3.236v15"></path></svg><span>Worlds</span></button>
+        <button id="settings" class="title-button"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="settings" aria-hidden="true" class="lucide lucide-settings"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"></path><circle cx="12" cy="12" r="3"></circle></svg><span>Settings</span></button>
+      </nav>
+      <!-- Off to the corner, small: sound and fullscreen, then the
+           accounts and the mailing list, for whoever wants them before the
+           demo's end asks. The glyphs are drawn here, as the buttons' are,
+           so the row is whole before app.js runs; the marks are filled in
+           from socials.js once it does. -->
+      <aside id="title-social" class="title-social" aria-label="Công cụ và liên hệ Lê Minh Nhật">
+        <div class="title-corner-tools">
+          <button id="fullscreen" data-fullscreen class="title-tool" aria-label="Enter fullscreen" title="Fullscreen (F)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="expand" aria-hidden="true" class="lucide lucide-expand"><path d="m15 15 6 6"></path><path d="m15 9 6-6"></path><path d="M21 16v5h-5"></path><path d="M21 8V3h-5"></path><path d="M3 16v5h5"></path><path d="m3 21 6-6"></path><path d="M3 8V3h5"></path><path d="M9 9 3 3"></path></svg></button>
+          <button id="menu-sound" class="title-tool" aria-label="Mute sound" title="Sound"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="volume-2" aria-hidden="true" class="lucide lucide-volume-2"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"></path><path d="M16 9a5 5 0 0 1 0 6"></path><path d="M19.364 18.364a9 9 0 0 0 0-12.728"></path></svg></button>
+        </div>
+        <div id="title-social-links" class="title-social-links"></div>
+        <button id="title-updates" class="title-updates"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="external-link" aria-hidden="true" class="lucide lucide-external-link"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg><span>Lê Minh Nhật</span></button>
+      </aside>
+      <footer class="title-footer">
+        <button id="open-editor" class="title-editor"><i data-lucide="pencil-ruler" aria-hidden="true"></i><span>Level editor</span></button>
+        <div class="title-tools">
+          <button id="howto" class="title-tool" aria-label="How to play" title="How to play"><i data-lucide="circle-help" aria-hidden="true"></i></button>
+        </div>
+      </footer>
+    </section>
+    <script>
+      // Before app.js arrives the title is plain HTML, and on a slow connection
+      // its pictures come in late and a strip at a time. Each is shown once it
+      // has arrived whole; until then title.css puts the inlined small logo and
+      // plain clay-coloured pills in their place.
+      (function(){
+        function whole(src,then){var i=new Image();i.onload=function(){(i.decode?i.decode():Promise.resolve()).then(then,then);};i.src=src;}
+        function art(el,pseudo){var m=/url\((["']?)(.*?)\1\)/.exec(getComputedStyle(el,pseudo).backgroundImage);return m&&m[2];}
+        document.querySelectorAll('.title-logo').forEach(function(img){
+          var ready=function(){img.parentNode.classList.add('logo-ready');};
+          if(img.complete&&img.naturalWidth)ready();else whole(img.currentSrc||img.src,ready);
+        });
+        var play=document.getElementById('play'),others=document.querySelectorAll('#menu .title-button:not(.title-play)');
+        var orange=art(play,'::before'),cream=others.length&&art(others[0]);
+        if(orange)whole(orange,function(){play.classList.add('art-ready');});
+        if(cream)whole(cream,function(){others.forEach(function(b){b.classList.add('art-ready');});});
+      })();
+    </script>
+
+    <div id="chapter-intro" class="chapter-intro hidden"><span id="intro-number" class="eyebrow">CHAPTER ONE</span><h2 id="intro-name"></h2></div>
+    <div id="kiln-rules" class="kiln-rules-card" aria-live="polite" hidden></div>
+    <div id="hint" class="hint hidden"><span id="hint-mark" class="hint-mark" aria-hidden="true"></span><div><strong id="hint-title"></strong><p id="hint-text"></p></div><button id="dismiss-hint" aria-label="Dismiss hint"><i data-lucide="x"></i></button></div>
+    <div id="pad-hand" class="pad-hand hidden" aria-hidden="true"><span class="pad-hand-ring"></span><span class="pad-hand-pick">◂ bumpers ▸</span></div>
+    <div id="rotate" class="rotate hidden" role="status"><i data-lucide="smartphone" aria-hidden="true"></i><div><strong>Turn your phone</strong><p>Turn sideways. There's more to see.</p></div><button id="dismiss-rotate" aria-label="Keep playing in portrait"><i data-lucide="x"></i></button></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="timer" class="bridge-timer hidden"><i data-lucide="timer"></i><span id="timer-label"></span><span class="timer-track"><span id="timer-bar"></span></span></div>
+    <nav id="touch-controls" class="touch-controls hidden" aria-label="Game controls">
+      <div id="move-pad" class="virtual-joystick" role="group" aria-label="Movement joystick. Drag left or right, gently for small steps. Release to stop.">
+        <span class="joystick-well" aria-hidden="true"></span><span class="joystick-guide" aria-hidden="true"></span><span class="joystick-thumb" aria-hidden="true"></span><span class="joystick-caption" aria-hidden="true">MOVE</span>
+      </div>
+      <div class="touch-action"><button id="stomp" class="touch-button stomp" data-state="hidden" aria-label="Stomp downward"><i data-lucide="arrow-down-to-line"></i><span>STOMP</span></button><button id="jump" class="touch-button jump" aria-label="Jump. Hold for a higher jump"><i data-lucide="arrow-up"></i><span>JUMP</span><small class="jump-tip" aria-hidden="true">TAP · HOLD = HIGHER</small></button></div>
+    </nav>
+
+    <section id="dialog" class="dialog-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="dialog-card" id="dialog-content"></div></section>
+    <div id="editor-testbar" class="editor-testbar"><span>Workshop playtest</span><button id="return-editor" class="editor-button"><i data-lucide="pencil-ruler"></i> Back to editor</button></div>
+    <div id="fade" aria-hidden="true"></div>
+    <section id="error" class="error hidden" role="alert"><h1>A little hiccup.</h1><p id="error-text">This world needs WebGL. Try updating your browser or enabling hardware acceleration.</p><button class="primary" onclick="location.reload()">Try again</button><button id="error-home" class="quiet-button">Back to title</button><p id="error-links" class="error-links" hidden><a id="error-open-chrome" hidden>Open in Chrome</a><a href="updates.html?from=load-error">Get updates by email</a></p></section>
+  </main>
+</body>
+</html>

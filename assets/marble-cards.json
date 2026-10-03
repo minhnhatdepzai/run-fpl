@@ -1,0 +1,221 @@
+{
+ "cards": [
+  {
+   "name": "clouds",
+   "strip": "sky",
+   "f": 0.02,
+   "hf": 0.99,
+   "z": -100.0,
+   "frame": [
+    -15.5,
+    23.0,
+    -2.2,
+    5.6
+   ],
+   "fires": [],
+   "day": "marble-card-clouds-day.webp",
+   "night": "marble-card-clouds-night.webp"
+  },
+  {
+   "name": "far",
+   "strip": "far",
+   "f": 0.04,
+   "hf": 0.985,
+   "z": -90.0,
+   "frame": [
+    -17,
+    37,
+    -8,
+    5.5
+   ],
+   "fires": [],
+   "day": "marble-card-far-day.webp",
+   "night": "marble-card-far-night.webp"
+  },
+  {
+   "name": "night-mid",
+   "strip": "mid",
+   "f": 0.1,
+   "hf": 0.95,
+   "z": -60.0,
+   "frame": [
+    7.0,
+    70.0,
+    -7.0,
+    2.4
+   ],
+   "fires": [],
+   "day": "marble-card-night-mid-day.webp",
+   "night": "marble-card-night-mid-night.webp"
+  },
+  {
+   "name": "aqueduct",
+   "strip": "land",
+   "f": 0.2,
+   "hf": 0.93,
+   "z": -39.0,
+   "frame": [
+    3.4,
+    28.0,
+    -5.4,
+    9.4
+   ],
+   "fires": [],
+   "day": "marble-card-aqueduct-day.webp"
+  },
+  {
+   "name": "atlas-hall",
+   "strip": "land",
+   "f": 0.2,
+   "hf": 0.93,
+   "z": -40.0,
+   "frame": [
+    74.0,
+    130.0,
+    -18.0,
+    13.0
+   ],
+   "fires": [],
+   "day": "marble-card-atlas-hall-day.webp"
+  },
+  {
+   "name": "colossus",
+   "strip": "land",
+   "f": 0.2,
+   "hf": 0.93,
+   "z": -41.5,
+   "frame": [
+    -6.5,
+    16.0,
+    -6.4,
+    9.2
+   ],
+   "fires": [],
+   "day": "marble-card-colossus-day.webp"
+  },
+  {
+   "name": "golden-land",
+   "strip": "land",
+   "f": 0.2,
+   "hf": 0.93,
+   "z": -40.0,
+   "frame": [
+    8.0,
+    52.0,
+    -7.4,
+    8.4
+   ],
+   "fires": [],
+   "day": "marble-card-golden-land-day.webp",
+   "night": "marble-card-golden-land-night.webp"
+  },
+  {
+   "name": "night-land",
+   "strip": "land",
+   "f": 0.2,
+   "hf": 0.93,
+   "z": -40.0,
+   "frame": [
+    36.0,
+    80.0,
+    -5.4,
+    3.4
+   ],
+   "fires": [],
+   "day": "marble-card-night-land-day.webp",
+   "night": "marble-card-night-land-night.webp"
+  },
+  {
+   "name": "slings-land",
+   "strip": "land",
+   "f": 0.2,
+   "hf": 0.93,
+   "z": -40.0,
+   "frame": [
+    12.0,
+    26.0,
+    -5.4,
+    3.6
+   ],
+   "fires": [],
+   "day": "marble-card-slings-land-day.webp"
+  },
+  {
+   "name": "dusk-near",
+   "strip": "near",
+   "f": 0.3,
+   "hf": 0.9,
+   "z": -22.0,
+   "frame": [
+    46.0,
+    84.0,
+    -6.2,
+    10.2
+   ],
+   "fires": [],
+   "day": "marble-card-dusk-near-day.webp",
+   "night": "marble-card-dusk-near-night.webp"
+  },
+  {
+   "name": "golden-near",
+   "strip": "near",
+   "f": 0.3,
+   "hf": 0.9,
+   "z": -22.0,
+   "frame": [
+    22.0,
+    62.0,
+    -5.8,
+    10.6
+   ],
+   "fires": [],
+   "day": "marble-card-golden-near-day.webp"
+  },
+  {
+   "name": "near-start",
+   "strip": "near",
+   "f": 0.3,
+   "hf": 0.9,
+   "z": -22.0,
+   "frame": [
+    -15.0,
+    19.5,
+    -4.6,
+    10.9
+   ],
+   "fires": [],
+   "day": "marble-card-near-start-day.webp"
+  },
+  {
+   "name": "night-near",
+   "strip": "near",
+   "f": 0.3,
+   "hf": 0.9,
+   "z": -22.0,
+   "frame": [
+    68.0,
+    110.0,
+    -3.4,
+    10.4
+   ],
+   "fires": [],
+   "day": "marble-card-night-near-day.webp",
+   "night": "marble-card-night-near-night.webp"
+  },
+  {
+   "name": "slings-near",
+   "strip": "near",
+   "f": 0.3,
+   "hf": 0.9,
+   "z": -22.0,
+   "frame": [
+    8.0,
+    25.0,
+    -4.6,
+    9.4
+   ],
+   "fires": [],
+   "day": "marble-card-slings-near-day.webp"
+  }
+ ]
+}
